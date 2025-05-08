@@ -50,7 +50,18 @@ direnv allow && direnv reload
 The list of required packages are listed in `nix/shells/frontend/default.nix`
 Install its by yourself 󰱱
 
-## Explaining development workflow
+## Explaining Technical Stack And Development Workflow
+
+### Technical Stack
+
+This template is cloud native project using Pulumi as IaC tool to deploy project
+to AWS.
+
+#### Infrastructure
+
+TODO
+
+### Development Workflow
 
 ```bash
  .
@@ -72,6 +83,20 @@ will be retrieved from Pulumi ESC and exported to current shell.
 
 Use commands inside `Taskfile.yml` to start, lint, deploy... your project.
 
-## Setup pulumi workspace
+## Hands On
 
-## Init Angular project
+After created a new project in `Pulumi` console. Get the `project name` +
+`stack` to init the deployment config.
+
+```bash
+# Init pulumi module
+pulumi new aws-typescript -s {your_org}/{project_name}/{stack} --dir deployment/aws
+cd ./deployment/aws && npm i
+
+# Install required packages
+npm i @aws-sdk/client-cloudfront @pulumi/synced-folder
+```
+
+### Example
+
+Stack inside `deployment/aws-example`
