@@ -52,34 +52,90 @@ Install its by yourself 󰱱
 
 ## Explaining Technical Stack And Development Workflow
 
-### Technical Stack
+### Infrastructure
 
-This template is cloud native project using Pulumi as IaC tool to deploy project
-to AWS.
+This template is a cloud-native project using Pulumi as Infrastructure as Code
+(IaC) to deploy Angular applications to AWS. Below is a detailed breakdown of
+the AWS resources and their interactions:
 
-#### Infrastructure
+#### 1. **AWS Resources**:
 
-1. **AWS Resources**:
-   - **S3 Bucket**: Stores the static files synced from the local directory for
-     each monorepo.
-   - **CloudFront Distribution**: Serves the content from a S3 folder with
-     caching, HTTPS, and custom error handling.
-   - **Route 53 Record**: Maps each CloudFront distribution to a custom domain.
-   - **ACM Certificate**: Provides SSL/TLS for each CloudFront distribution.
+- **S3 Bucket**:
+  - **Purpose**: Stores static files (HTML, CSS, JS, assets) for each monorepo
+    application.
+  - **Configuration**:
+    - Bucket ownership is set to `BucketOwnerPreferred` to ensure proper access
+      control.
+    - Public access is blocked to enforce security (`blockPublicAcls`,
+      `ignorePublicAcls`, etc.).
+    - Files are synced from the local `builtDir` (e.g., `dist/apps`) to the S3
+      bucket using the `@pulumi/synced-folder` package.
+  - **Output**: The bucket's regional domain name (e.g.,
+    `bucket.s3.region.amazonaws.com`) is used as the CloudFront origin.
 
-2. **AWS Dependencies**:
-   - The S3 bucket policy allows CloudFront to read objects.
-   - CloudFront uses the S3 bucket as its origin.
-   - Route 53 points to the CloudFront distribution.
+- **CloudFront Distribution**:
+  - **Purpose**: Acts as a CDN to serve content from the S3 bucket with
+    optimizations like caching, HTTPS, and custom error handling.
+  - **Configuration**:
+    - **Origin**: The S3 bucket is configured as the origin with
+      `Origin Access Control (OAC)` for secure access.
+    - **Caching**: Uses AWS-managed cache policies (`CachePolicyId`) and
+      response headers policies (`ResponseHeadersPolicyId`).
+    - **Custom Errors**: Redirects `404` and `403` errors to `index.html` for
+      SPAs (Single Page Applications).
+    - **SSL/TLS**: Uses an ACM certificate for HTTPS (`acmCertificateArn`).
+    - **Aliases**: Maps to a custom domain (e.g., `app.example.com`).
+  - **Output**: The CloudFront distribution domain name (e.g.,
+    `d123.cloudfront.net`).
 
-3. **Pulumi**:
-   - Uses the `Pulumi Config` to fetch deployment settings.
-   - Orchestrates the creation of AWS resources (S3, CloudFront, Route 53) via
-     `Setup Functions`.
+- **Route 53 Record**:
+  - **Purpose**: Maps the CloudFront distribution to a custom domain (e.g.,
+    `app.example.com`).
+  - **Configuration**:
+    - Uses the CloudFront distribution's domain name and hosted zone ID.
+    - Supports `A` record type with alias routing.
+  - **Output**: The DNS record ID for reference.
 
-4. **Local System**:
-   - The `Built Directory` is synced to the S3 bucket using the `Synced Folder`
-     component.
+- **ACM Certificate**:
+  - **Purpose**: Provides SSL/TLS certificates for secure HTTPS connections.
+  - **Note**: The certificate must be provisioned in the `us-east-1` region
+    (required by CloudFront).
+
+#### 2. **AWS Dependencies**:
+
+- **S3 Bucket Policy**:
+  - Allows CloudFront to read objects via an IAM policy tied to the CloudFront
+    distribution's ARN.
+- **CloudFront Origin**:
+  - Uses the S3 bucket as its origin, secured via OAC.
+- **Route 53**:
+  - Points the custom domain to the CloudFront distribution.
+
+#### 3. **Pulumi**:
+
+- **Configuration**:
+  - Uses `Pulumi Config` to fetch deployment settings (e.g., `builtDir`,
+    `region`, `repos`).
+  - Supports dynamic resource naming (e.g., `util.mkResourceName`) for
+    uniqueness.
+- **Setup Functions**:
+  - Modular functions (`setupS3BucketFolder`, `setupCloudFrontDistribution`,
+    etc.) orchestrate resource creation.
+  - Dependencies are managed explicitly (e.g., `dependsOn` for synced folders).
+- **Outputs**:
+  - Exposes critical IDs (e.g., `distributionId`, `dnsRecordId`) for debugging
+    and automation.
+
+#### 4. **Local System**:
+
+- **Synced Folder**:
+  - The `@pulumi/synced-folder` package syncs the local `builtDir` (e.g.,
+    `dist/apps`) to the S3 bucket during deployment.
+  - Ensures only the owner can modify files
+    (`acl: "bucket-owner-full-control"`).
+- **Environment**:
+  - Uses `direnv` and `nix` to manage CLI tools and environment variables (e.g.,
+    `AWS_REGION`, `PULUMI_CONFIG`).
 
 ### Development Workflow
 
