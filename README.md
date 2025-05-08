@@ -48,7 +48,29 @@ direnv allow && direnv reload
 ### In the case you're not using Nix `flake`
 
 The list of required packages are listed in `nix/shells/frontend/default.nix`
-Install its by yourself 󰇵
+Install its by yourself 󰱱
+
+## Explaining development workflow
+
+```bash
+ .
+├──  .envrc                        # auto load cli-packages & environment variables
+├──  flake.nix                     # nix flake inputs
+├──  nix
+│   └──  shells
+│       └──  frontend
+│           └──  default.nix       # list of cli-packages
+└──  Taskfile.yaml                 # contains list of command to control your applications.
+```
+
+When you `cd` to this project, direnv will try to load cli-packages from Nix
+package manager (which defined in `flake.nix` & `frontend/default.nix`) and
+environment variables defined in `.env` file and Pulumi ESC.
+
+Based on stage variable that you defined in `.env`, the corresponding variables
+will be retrieved from Pulumi ESC and exported to current shell.
+
+Use commands inside `Taskfile.yml` to start, lint, deploy... your project.
 
 ## Setup pulumi workspace
 
