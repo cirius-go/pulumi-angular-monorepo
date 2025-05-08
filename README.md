@@ -1,66 +1,36 @@
 # Pulumi Angular Monorepo     
 
 Pulumi Angular Monorepo is a template project, which uses pulumi as IaC for
-deployment monorepo angular purpose.
+deployment monorepo angular purpose. It leverages nix for environment management
+and direnv for loading environment variables, providing a streamlined
+development and deployment workflow.
 
-I recommend using `direnv` package + `nix` package manager with current project.
-Here is some benefit of `direnv`:
+Here is some benefit of `direnv` and `nix`:
 
-- Load [12Factor apps](https://12factor.net/) environment variables.
+- Load [12factor apps](https://12factor.net/) environment variables.
 - Create project isolated development environments.
 - Load secrets for coding stage.
 - Load secrets for deployment stage.
 - Supported multiple platforms. Ex: `(aarch64|x86_64)-darwin`,
   `(aarch64|x86_64)-linux`,...
 
-References:
+## Features
 
-- [Direnv](https://direnv.net/)
-- [Nix](https://nixos.org/)
-- [Nix Snowfall](https://snowfall.org/)
+- Pulumi Integration: Utilizes Pulumi for managing cloud infrastructure.
+- Angular Monorepo: Supports multiple Angular applications within a single
+  repository.
+- Nix & Direnv: Employs nix for package management and direnv for environment
+  variable management.
+- Task Automation: Includes a Taskfile.yaml for automating common development
+  tasks.
 
-## Prequisites
+## infrastructure
 
-### If you use Nix `flake` to manage your project packages
-
-This project is configured to support Nix package manager. You should install
-direnv to auto install required packages for your project. All cli applications
-and environment variables will be injected to your current shell.
-
-```bash
-direnv allow
-```
-
-New package for this project should be defined in
-`nix/shells/frontend/default.nix`. You can browse package from
-[NixOS Search](https://search.nixos.org/packages).
-
-If you develop app in multiple platforms, please reading carefully about the
-package description because some packages are only defined for specific system.
-
-To update package versions
-
-```bash
-nix flake update
-direnv allow && direnv reload
-```
-
-### In the case you're not using Nix `flake`
-
-The list of required packages are listed in `nix/shells/frontend/default.nix`
-Install its by yourself 󰱱
-
-## Explaining Technical Stack And Development Workflow
-
-### Infrastructure
-
-This template is a cloud-native project using Pulumi as Infrastructure as Code
-(IaC) to deploy Angular applications to AWS. Below is a detailed breakdown of
-the AWS resources and their interactions:
+### Below is a detailed breakdown of the AWS resources and their interactions
 
 #### 1. **AWS Resources**:
 
-- **S3 Bucket**:
+- **S3 Bucket**
   - **Purpose**: Stores static files (HTML, CSS, JS, assets) for each monorepo
     application.
   - **Configuration**:
@@ -73,7 +43,7 @@ the AWS resources and their interactions:
   - **Output**: The bucket's regional domain name (e.g.,
     `bucket.s3.region.amazonaws.com`) is used as the CloudFront origin.
 
-- **CloudFront Distribution**:
+- **CloudFront Distribution**
   - **Purpose**: Acts as a CDN to serve content from the S3 bucket with
     optimizations like caching, HTTPS, and custom error handling.
   - **Configuration**:
@@ -88,7 +58,7 @@ the AWS resources and their interactions:
   - **Output**: The CloudFront distribution domain name (e.g.,
     `d123.cloudfront.net`).
 
-- **Route 53 Record**:
+- **Route 53 Record**
   - **Purpose**: Maps the CloudFront distribution to a custom domain (e.g.,
     `app.example.com`).
   - **Configuration**:
@@ -96,7 +66,7 @@ the AWS resources and their interactions:
     - Supports `A` record type with alias routing.
   - **Output**: The DNS record ID for reference.
 
-- **ACM Certificate**:
+- **ACM Certificate**
   - **Purpose**: Provides SSL/TLS certificates for secure HTTPS connections.
   - **Note**: The certificate must be provisioned in the `us-east-1` region
     (required by CloudFront).
@@ -137,32 +107,87 @@ the AWS resources and their interactions:
   - Uses `direnv` and `nix` to manage CLI tools and environment variables (e.g.,
     `AWS_REGION`, `PULUMI_CONFIG`).
 
-### Development Workflow
-
-```bash
- .
-├──  .envrc                        # auto load cli-packages & environment variables
-├──  flake.nix                     # nix flake inputs
-├──  nix
-│   └──  shells
-│       └──  frontend
-│           └──  default.nix       # list of cli-packages
-└──  Taskfile.yaml                 # contains list of command to control your applications.
-```
-
-When you `cd` to this project, direnv will try to load cli-packages from Nix
-package manager (which defined in `flake.nix` & `frontend/default.nix`) and
-environment variables defined in `.env` file and Pulumi ESC.
-
-Based on stage variable that you defined in `.env`, the corresponding variables
-will be retrieved from Pulumi ESC and exported to current shell.
-
 Use commands inside `Taskfile.yml` to start, lint, deploy... your project.
 
-## Hands On
+## Setup Instructions
 
-After created a new project in `Pulumi` console. Use the `project name` +
-`stack` to init the deployment config.
+1. Prequisites
+
+Install these package.
+
+- [Direnv](https://direnv.net)
+- (Optional) [Nix-Darwin](https://github.com/nix-darwin/nix-darwin) for MacOS or
+  [Nix](https://nixos.org/download/#nix-install-linux) for linux
+
+2. Clone template repository
+
+```bash
+git clone https://github.com/cirius-go/pulumi-angular-monorepo your_project_name
+cd your_project_name
+```
+
+3. Install required packages
+
+List of required packages is defined at `nix/shells/frontend/default.nix`. You
+can use [NixOS Search](https://search.nixos.org/packages) to retrieve package
+name.
+
+This project is configured to support Nix package manager + Direnv. Whenever you
+allow `direnv` to start or reload, Nix package manager will install required
+packages if not exists.
+
+If you don't want to use Nix. You can install required packages by yourself and
+remove these nix files:
+
+    - Inside `.envrc` file, remove this snippet:
+
+      ```bash
+      #!/usr/bin/env bash
+      # ...
+      # remove this block
+      if [[ $(type -t use_flake) != function ]]; then
+        # ...
+      fi
+
+      # remove this block
+      if ! has nix_direnv_version || ! nix_direnv_version 3.0.6; then
+        # ...
+      fi
+
+      # remove this line
+      use flake .#frontend --impure
+      ```
+
+    - Remove `flake.nix`, `flake.lock` files and `nix` folder.
+
+4. Allow direnv to load env variables and nix packages
+
+```bash
+direnv allow
+
+# To update package versions
+nix flake update
+direnv allow && direnv reload
+```
+
+After that:
+
+- When you `cd` to this project, direnv will try to load or install packages
+  from Nix package manager and expose environment variables defined in `.env`
+  file and Pulumi ESC to current shell.
+
+- Based on `STAGE` variable inside `.env`, the corresponding variables will be
+  retrieved from Pulumi ESC and exported to current shell.
+
+NOTE: This project is using `STAGE` value as Pulumi project's stack name (except
+`local`) to consistent across enviroments.
+
+If you develop app in multiple platforms, please reading carefully about the
+package description because some packages are only defined for specific system.
+
+5. Init project and environment in Pulumi console.
+
+Use the `project name` + `stack` to init the deployment config.
 
 ```bash
 # Init pulumi module
@@ -173,6 +198,13 @@ cd ./deployment/aws && npm i
 npm i @aws-sdk/client-cloudfront @pulumi/synced-folder
 ```
 
-### Example
+For example, I created project & env `pulumi-angular-monorepo` with stack `dev`
+under `cirius-go` org in pulumi console.
 
-Stack inside `deployment/aws-example`
+```bash
+pulumi new aws-typescript -s cirius-go/pulumi-angular-monorepo/dev --dir deployment/aws
+cd ./deployment/aws && npm i
+npm i @aws-sdk/client-cloudfront @pulumi/synced-folder
+```
+
+You can see the example config inside `deployment/aws-example`
