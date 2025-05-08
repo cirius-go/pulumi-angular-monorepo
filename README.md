@@ -6,7 +6,7 @@ deployment monorepo angular purpose.
 I recommend using `direnv` package + `nix` package manager with current project.
 Here is some benefit of `direnv`:
 
-- Load [12Factor apps]() environment variables.
+- Load [12Factor apps](https://12factor.net/) environment variables.
 - Create project isolated development environments.
 - Load secrets for coding stage.
 - Load secrets for deployment stage.
