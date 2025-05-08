@@ -1,0 +1,85 @@
+version: '3'
+vars:
+  PROJECT: cirius-go/pulumi-angular-monorepo
+tasks:
+  default:
+    cmds:
+      - task -l
+    silent: true
+  start:
+    cmds:
+      - npx nx run {{ .REPO | default "monorepo-1" }}:serve --port 4000
+  env:edit:
+    desc: 'Edit environment'
+    cmds:
+      - esc env edit {{ .PROJECT }}/{{ .STAGE | default "dev" }}
+  env:show:
+    desc: 'Show environment'
+    cmds:
+      - esc env open  {{ .PROJECT }}/{{ .STAGE | default "dev" }} -f dotenv
+  env:set:
+    desc: 'Set environment'
+    cmds:
+      - esc env set {{ .PROJECT }}/{{ .STAGE | default "dev" }} {{ .CLI_ARGS }}
+  env:rm:
+    desc: 'Remove environment'
+    cmds:
+      - esc env rm {{ .PROJECT }}/{{ .STAGE | default "dev" }} {{ .CLI_ARGS }}
+  env:dev:edit:
+    desc: 'Edit dev environment'
+    cmds:
+      - task: env:edit
+        vars:
+          STAGE: dev
+  env:dev:show:
+    desc: 'Show dev environment'
+    cmds:
+      - task: env:show
+        vars:
+          STAGE: dev
+  env:dev:set:
+    desc: 'Set dev environment'
+    cmds:
+      - task: env:set
+        vars:
+          STAGE: dev
+  env:dev:rm:
+    desc: 'Remove dev environment'
+    cmds:
+      - task: env:rm
+        vars:
+          STAGE: dev
+  build:
+    desc: 'Build project'
+    cmds:
+      - ./scripts/build.sh {{ .CLI_ARGS }}
+  build:dev:
+    desc: 'Build dev environment'
+    cmds:
+      - task: build
+        vars:
+          CLI_ARGS: dev example-1
+  deploy:
+    desc: 'Deploy to AWS'
+    cmds:
+      - task: build:{{ .STAGE | default "dev" }}
+      - pulumi up -C ./deployment/aws -s {{ .PROJECT }}/{{ .STAGE | default "dev" }}
+      - task: stack:output
+  stack:output:
+    desc: 'Show stack outputs'
+    cmds:
+      - pulumi -C ./deployment/aws stack output --json
+  deploy:dev:
+    desc: 'Deploy to AWS dev environment'
+    cmds:
+      - task: deploy
+        vars:
+          STAGE: dev
+  check:
+    desc: "Run 'detect-secrets scan > .secrets.baseline' if needed"
+    cmds:
+      - pre-commit run --all-files
+  fix:
+    cmds:
+      - npx nx run-many --target=lint --all --fix --parallel=3
+      - npx nx format:write --libs-and-apps

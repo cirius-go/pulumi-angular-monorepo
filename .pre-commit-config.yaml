@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline", "--exclude-files", "pnpm-lock.yaml"]
+  - repo: local
+    hooks:
+      - id: nx-lint
+        name: Lint with NX
+        language: system
+        entry: npx nx run-many --target=lint --all --fix --parallel=3
+        pass_filenames: false
+      - id: nx-format
+        name: Format with NX
+        language: system
+        entry: npx nx format:write --libs-and-apps
+        pass_filenames: false
+      - id: try-build
+        name: Build with NX
+        language: system
+        entry: task build -- dev wbs-portal
+        pass_filenames: false
