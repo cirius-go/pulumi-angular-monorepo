@@ -24,7 +24,7 @@ Here is some benefit of `direnv` and `nix`:
 - Task Automation: Includes a Taskfile.yaml for automating common development
   tasks.
 
-## infrastructure
+## Infrastructure
 
 ### Below is a detailed breakdown of the AWS resources and their interactions
 
@@ -111,7 +111,7 @@ Use commands inside `Taskfile.yml` to start, lint, deploy... your project.
 
 ## Setup Instructions
 
-1. Prequisites
+### Prequisites
 
 Install these package.
 
@@ -119,14 +119,14 @@ Install these package.
 - (Optional) [Nix-Darwin](https://github.com/nix-darwin/nix-darwin) for MacOS or
   [Nix](https://nixos.org/download/#nix-install-linux) for linux
 
-2. Clone template repository
+### Clone template repository
 
 ```bash
 git clone https://github.com/cirius-go/pulumi-angular-monorepo your_project_name
 cd your_project_name
 ```
 
-3. Install required packages
+### Install required packages
 
 List of required packages is defined at `nix/shells/frontend/default.nix`. You
 can use [NixOS Search](https://search.nixos.org/packages) to retrieve package
@@ -136,31 +136,31 @@ This project is configured to support Nix package manager + Direnv. Whenever you
 allow `direnv` to start or reload, Nix package manager will install required
 packages if not exists.
 
-If you don't want to use Nix. You can install required packages by yourself and
-remove these nix files:
+NOTE: If you don't want to use Nix. You can install required packages by
+yourself and remove these nix files and folder:
 
-    - Inside `.envrc` file, remove this snippet:
+- Inside `.envrc` file, remove this snippet:
 
-      ```bash
-      #!/usr/bin/env bash
-      # ...
-      # remove this block
-      if [[ $(type -t use_flake) != function ]]; then
-        # ...
-      fi
+  ```bash
+  #!/usr/bin/env bash
+  # ...
+  # remove this block
+  if [[ $(type -t use_flake) != function ]]; then
+    # ...
+  fi
 
-      # remove this block
-      if ! has nix_direnv_version || ! nix_direnv_version 3.0.6; then
-        # ...
-      fi
+  # remove this block
+  if ! has nix_direnv_version || ! nix_direnv_version 3.0.6; then
+    # ...
+  fi
 
-      # remove this line
-      use flake .#frontend --impure
-      ```
+  # remove this line
+  use flake .#frontend --impure
+  ```
 
-    - Remove `flake.nix`, `flake.lock` files and `nix` folder.
+- Remove `flake.nix`, `flake.lock` files and `nix` folder.
 
-4. Allow direnv to load env variables and nix packages
+### Allow direnv to load env variables and nix packages
 
 ```bash
 direnv allow
@@ -185,7 +185,7 @@ NOTE: This project is using `STAGE` value as Pulumi project's stack name (except
 If you develop app in multiple platforms, please reading carefully about the
 package description because some packages are only defined for specific system.
 
-5. Init project and environment in Pulumi console.
+### Init project and environment in Pulumi console.
 
 Use the `project name` + `stack` to init the deployment config.
 
@@ -199,7 +199,7 @@ npm i @aws-sdk/client-cloudfront @pulumi/synced-folder
 ```
 
 For example, I created project & env `pulumi-angular-monorepo` with stack `dev`
-under `cirius-go` org in pulumi console.
+under `cirius-go` org in pulumi console. So the corresponding command will be:
 
 ```bash
 pulumi new aws-typescript -s cirius-go/pulumi-angular-monorepo/dev --dir deployment/aws
@@ -207,4 +207,23 @@ cd ./deployment/aws && npm i
 npm i @aws-sdk/client-cloudfront @pulumi/synced-folder
 ```
 
-You can see the example config inside `deployment/aws-example`
+You can see the example config inside `deployment/aws-example`. Which will be
+used to deploy all monorepos to AWS.
+
+### Init monorepos codebase using NX
+
+Here, I use [NX](https://nx.dev/getting-started/intro) package to init the
+monorepo structure.
+
+```bash
+npx create-nx-workspace@latest \
+  --preset=angular-monorepo \
+  --name=pulumi-angular-monorepo \
+  --appName=frontend \
+  --style=scss \
+  --bundler=esbuild \
+  --standalone \
+  --routing \
+  --pm=npm \
+  --skipGit
+```
