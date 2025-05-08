@@ -185,11 +185,18 @@ const setupMonoRepo = (repoCfg = DEFAULT_MONOREPO_CONFIG) => {
   const cfDistributionOutput = setupCloudFrontDistribution(repoCfg, s3Output);
   const route53RecordOutput = setupRoute53Record(repoCfg, cfDistributionOutput);
 
+  // invalidate cache after all.
+  const { distribution, bucketPolicy } = cfDistributionOutput;
+  const { bucket, syncedFolder } = s3Output;
+  pulumi.all([distribution.id, syncedFolder]).apply(async ([dId]) => {
+    await util.invalidateCFCache(dId, deploymentConfig.region);
+  });
+
   // expose some information for deployment stage.
   return {
-    bucketDomainName: s3Output.bucket.bucketRegionalDomainName,
-    bucketCFDistributionPolicy: cfDistributionOutput.bucketPolicy,
-    distributionId: cfDistributionOutput.distribution.id,
+    bucketDomainName: bucket.bucketRegionalDomainName,
+    bucketCFDistributionPolicy: bucketPolicy,
+    distributionId: distribution.id,
     dnsRecordId: route53RecordOutput.id,
   };
 };

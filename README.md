@@ -59,7 +59,27 @@ to AWS.
 
 #### Infrastructure
 
-TODO
+1. **AWS Resources**:
+   - **S3 Bucket**: Stores the static files synced from the local directory for
+     each monorepo.
+   - **CloudFront Distribution**: Serves the content from a S3 folder with
+     caching, HTTPS, and custom error handling.
+   - **Route 53 Record**: Maps each CloudFront distribution to a custom domain.
+   - **ACM Certificate**: Provides SSL/TLS for each CloudFront distribution.
+
+2. **AWS Dependencies**:
+   - The S3 bucket policy allows CloudFront to read objects.
+   - CloudFront uses the S3 bucket as its origin.
+   - Route 53 points to the CloudFront distribution.
+
+3. **Pulumi**:
+   - Uses the `Pulumi Config` to fetch deployment settings.
+   - Orchestrates the creation of AWS resources (S3, CloudFront, Route 53) via
+     `Setup Functions`.
+
+4. **Local System**:
+   - The `Built Directory` is synced to the S3 bucket using the `Synced Folder`
+     component.
 
 ### Development Workflow
 
@@ -85,7 +105,7 @@ Use commands inside `Taskfile.yml` to start, lint, deploy... your project.
 
 ## Hands On
 
-After created a new project in `Pulumi` console. Get the `project name` +
+After created a new project in `Pulumi` console. Use the `project name` +
 `stack` to init the deployment config.
 
 ```bash

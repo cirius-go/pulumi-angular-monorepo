@@ -5,6 +5,7 @@ import { S3BucketFolder } from "@pulumi/synced-folder";
 
 // DeploymentConfig contains all required configuration.
 export type DeploymentConfig = {
+  region: string;
   builtDir: string;
   repos: MonoRepoConfig[];
 };
