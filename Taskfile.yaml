@@ -8,7 +8,7 @@ tasks:
     silent: true
   start:
     cmds:
-      - npx nx run {{ .REPO | default "monorepo-1" }}:serve --port 4000
+      - cd ./workspace && npx nx run {{ .REPO | default "frontend" }}:serve --port 4000
   env:edit:
     desc: 'Edit environment'
     cmds:
@@ -81,5 +81,5 @@ tasks:
       - pre-commit run --all-files
   fix:
     cmds:
-      - npx nx run-many --target=lint --all --fix --parallel=3
-      - npx nx format:write --libs-and-apps
+      - cd ./workspace && npx nx run-many --target=lint --all --fix --parallel=3
+      - cd ./workspace && npx nx format:write --libs-and-apps

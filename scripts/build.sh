@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd ./workspace || exit
+
 # Check if application name and stage are provided
 if [ "$1" = "" ] || [ "$2" = "" ]; then
   echo "Error: Application name or stage not provided."
@@ -9,7 +11,7 @@ fi
 
 STAGE=$1
 APP_NAME=$2
-BUILD_DIR="deployment/aws/.build/$STAGE"
+BUILD_DIR="../deployment/aws/.build/$STAGE"
 
 # Clean up the previous build directory if it exists
 if [ -d "$BUILD_DIR/$APP_NAME" ]; then

@@ -225,5 +225,6 @@ npx create-nx-workspace@latest \
   --standalone \
   --routing \
   --pm=npm \
-  --skipGit
+  --skipGit \
+  --directory workspace
 ```
