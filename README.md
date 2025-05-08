@@ -1,4 +1,4 @@
-# Pulumi Angular Monorepo     
+# Pulumi Angular Monorepo      - In progress
 
 Pulumi Angular Monorepo is a template project, which uses pulumi as IaC for
 deployment monorepo angular purpose. It leverages nix for environment management
@@ -218,8 +218,8 @@ monorepo structure.
 ```bash
 npx create-nx-workspace@latest \
   --preset=angular-monorepo \
-  --name=pulumi-angular-monorepo \
-  --appName=frontend \
+  --name=your_mono_repo \
+  --appName=your_app_name \
   --style=scss \
   --bundler=esbuild \
   --standalone \
