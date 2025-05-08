@@ -15,6 +15,6 @@ mkShell {
     pulumi-esc
     pulumiPackages.pulumi-command
     pulumiPackages.pulumi-aws-native
-    pulumiPackages.pulumi-language-nodejs
+    pulumiPackages.pulumi-nodejs
   ];
 }
